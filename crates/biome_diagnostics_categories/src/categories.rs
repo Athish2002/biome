@@ -321,6 +321,7 @@ define_categories! {
     "lint/nursery/useMaxParams": "https://biomejs.dev/linter/rules/use-max-params",
     "lint/nursery/useModernMathApis": "https://biomejs.dev/linter/rules/use-modern-math-apis",
     "lint/nursery/useNamedCaptureGroup": "https://biomejs.dev/linter/rules/use-named-capture-group",
+    "lint/nursery/useNamedFunction": "https://biomejs.dev/linter/rules/use-named-function",
     "lint/nursery/useNamedLayer": "https://biomejs.dev/linter/rules/use-named-layer",
     "lint/nursery/useNullishCoalescing": "https://biomejs.dev/linter/rules/use-nullish-coalescing",
     "lint/nursery/usePlaywrightValidDescribeCallback": "https://biomejs.dev/linter/rules/use-playwright-valid-describe-callback",
