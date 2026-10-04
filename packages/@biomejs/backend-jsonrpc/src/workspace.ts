@@ -2916,6 +2916,11 @@ export interface Nursery {
 	 */
 	noVueUndeclaredDirectives?: NoVueUndeclaredDirectivesConfiguration;
 	/**
+	 * Disallow the use of Vue's v-html directive.
+	 * See https://biomejs.dev/linter/rules/no-vue-v-html
+	 */
+	noVueVHtml?: NoVueVHtmlConfiguration;
+	/**
 	 * Disallow deprecated number modifiers on Vue v-on directives.
 	 * See https://biomejs.dev/linter/rules/no-vue-v-on-number-values
 	 */
@@ -5319,6 +5324,9 @@ export type NoVueRefAsOperandConfiguration =
 export type NoVueUndeclaredDirectivesConfiguration =
 	| RulePlainConfiguration
 	| RuleWithNoVueUndeclaredDirectivesOptions;
+export type NoVueVHtmlConfiguration =
+	| RulePlainConfiguration
+	| RuleWithNoVueVHtmlOptions;
 export type NoVueVOnNumberValuesConfiguration =
 	| RulePlainConfiguration
 	| RuleWithNoVueVOnNumberValuesOptions;
@@ -7687,6 +7695,10 @@ export interface RuleWithNoVueUndeclaredDirectivesOptions {
 	level: RulePlainConfiguration;
 	options?: NoVueUndeclaredDirectivesOptions;
 }
+export interface RuleWithNoVueVHtmlOptions {
+	level: RulePlainConfiguration;
+	options?: NoVueVHtmlOptions;
+}
 export interface RuleWithNoVueVOnNumberValuesOptions {
 	level: RulePlainConfiguration;
 	options?: NoVueVOnNumberValuesOptions;
@@ -9923,6 +9935,7 @@ export interface NoVueUndeclaredDirectivesOptions {
 	 */
 	globals?: string[];
 }
+export type NoVueVHtmlOptions = {};
 export type NoVueVOnNumberValuesOptions = {};
 export type NoXorAsExponentiationOptions = {};
 export type NoZeroFractionsOptions = {};
@@ -11422,6 +11435,7 @@ export type Category =
 	| "lint/nursery/noVueImportCompilerMacros"
 	| "lint/nursery/noVueRefAsOperand"
 	| "lint/nursery/noVueUndeclaredDirectives"
+	| "lint/nursery/noVueVHtml"
 	| "lint/nursery/noVueVOnNumberValues"
 	| "lint/nursery/noXorAsExponentiation"
 	| "lint/nursery/noZeroFractions"
