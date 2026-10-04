@@ -532,7 +532,7 @@ export interface CssParserConfiguration {
 	allowWrongLineComments?: Bool;
 	/**
 	* Enables parsing of CSS Modules-specific features. Enable this feature only
-when your files don't end in `.module.css`. 
+when your files don't end in `.module.css` or `.module.scss`. 
 	 */
 	cssModules?: Bool;
 	/**
