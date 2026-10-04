@@ -51,7 +51,7 @@ pub struct CssParserConfiguration {
     pub allow_wrong_line_comments: Option<CssAllowWrongLineCommentsEnabled>,
 
     /// Enables parsing of CSS Modules-specific features. Enable this feature only
-    /// when your files don't end in `.module.css`.
+    /// when your files don't end in `.module.css` or `.module.scss`.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "cli",

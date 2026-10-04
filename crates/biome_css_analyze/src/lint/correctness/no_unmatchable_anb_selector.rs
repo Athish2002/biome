@@ -17,6 +17,11 @@ declare_lint_rule! {
     /// For more details about the An+B syntax, see:
     /// https://www.w3.org/TR/css-syntax-3/#anb-microsyntax
     ///
+    /// ## Sass limitations
+    ///
+    /// An+B expressions containing Sass interpolation are ignored because their evaluated value is
+    /// unknown.
+    ///
     /// ## Examples
     ///
     /// ### Invalid

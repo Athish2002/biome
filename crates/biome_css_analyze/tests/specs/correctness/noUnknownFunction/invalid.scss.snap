@@ -1,0 +1,32 @@
+---
+source: crates/biome_css_analyze/tests/spec_tests.rs
+expression: invalid.scss
+---
+# Input
+```css
+/* should generate diagnostics */
+.element {
+  transform: unknown(4);
+}
+
+```
+
+# Diagnostics
+```
+invalid.scss:3:14 lint/correctness/noUnknownFunction ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Unexpected unknown function: unknown
+  
+    1 │ /* should generate diagnostics */
+    2 │ .element {
+  > 3 │   transform: unknown(4);
+      │              ^^^^^^^
+    4 │ }
+    5 │ 
+  
+  i Use a known function instead.
+  
+  i See MDN web docs for more details.
+  
+
+```

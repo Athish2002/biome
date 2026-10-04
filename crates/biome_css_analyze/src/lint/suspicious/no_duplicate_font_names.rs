@@ -1,11 +1,14 @@
-#![expect(clippy::disallowed_methods, reason = "This rule compares CSS values that can span multiple tokens.")]
+#![expect(
+    clippy::disallowed_methods,
+    reason = "This rule compares CSS values that can span multiple tokens."
+)]
 
-use crate::fonts::{CssFontValue, find_font_family, is_font_family_keyword};
+use crate::fonts::{CssFontValue, find_font_family, font_components, is_font_family_keyword};
 use biome_analyze::{
     Ast, Rule, RuleDiagnostic, RuleSource, context::RuleContext, declare_lint_rule,
 };
 use biome_console::markup;
-use biome_css_syntax::{AnyCssGenericPropertyValueOrExpression, CssGenericProperty};
+use biome_css_syntax::CssGenericProperty;
 use biome_diagnostics::Severity;
 use biome_rowan::AstNode;
 use biome_rule_options::no_duplicate_font_names::NoDuplicateFontNamesOptions;
@@ -17,8 +20,12 @@ declare_lint_rule! {
     ///
     /// This rule checks the `font` and `font-family` properties for duplicate font names.
     ///
-    /// This rule ignores var(--custom-property) variable syntaxes now.
+    /// This rule ignores `var(--custom-property)` values.
     ///
+    /// ## Sass limitations
+    ///
+    /// Font values that require Sass evaluation, including variables, interpolation, and
+    /// user-defined function results, are ignored because the emitted font names are unknown.
     ///
     /// ## Examples
     ///
@@ -73,16 +80,8 @@ impl Rule for NoDuplicateFontNames {
         }
 
         let mut family_names: HashSet<CssFontValue> = HashSet::new();
-        let value_list = match node.value() {
-            Ok(value) => match value {
-                AnyCssGenericPropertyValueOrExpression::CssCustomPropertyValue(_) => return None,
-                AnyCssGenericPropertyValueOrExpression::CssLegacyFilterValue(_) => return None,
-                AnyCssGenericPropertyValueOrExpression::CssGenericComponentValueList(list) => list,
-                AnyCssGenericPropertyValueOrExpression::ScssExpression(_) => return None,
-            },
-            Err(_) => return None,
-        };
-        let font_families = find_font_family(value_list);
+        let components = font_components(node.value().ok()?)?;
+        let font_families = find_font_family(&components);
 
         for css_value in font_families {
             let value = css_value.to_string()?;

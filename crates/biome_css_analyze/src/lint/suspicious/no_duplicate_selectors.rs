@@ -1,9 +1,9 @@
 use biome_analyze::{Rule, RuleDiagnostic, RuleSource, context::RuleContext, declare_lint_rule};
 use biome_console::markup;
 use biome_css_semantic::model::{AnyRuleStart, RuleId};
-use biome_css_syntax::AnyCssRoot;
+use biome_css_syntax::{AnyCssRoot, CssSyntaxKind};
 use biome_diagnostics::Severity;
-use biome_rowan::TextRange;
+use biome_rowan::{AstNode, TextRange};
 use rustc_hash::{FxBuildHasher, FxHashMap, FxHashSet};
 use std::hash::{BuildHasher, Hasher};
 
@@ -33,6 +33,12 @@ declare_lint_rule! {
     /// Selectors are only compared within the same at-rule context. A selector
     /// inside `@media` is not considered a duplicate of the same selector at the
     /// top level.
+    ///
+    /// ## Sass limitations
+    ///
+    /// This rule does not evaluate Sass. It compares selectors within the same Sass block, but does
+    /// not expand mixins, includes, or `@extend`. Selectors containing interpolation or placeholders
+    /// are ignored because their emitted form cannot be determined statically.
     ///
     /// ## Examples
     ///
@@ -96,6 +102,26 @@ pub struct DuplicateSelectorList {
     normalized_list: String,
 }
 
+fn scss_selector_context(rule: &AnyRuleStart) -> Option<TextRange> {
+    rule.syntax()
+        .ancestors()
+        .find(|ancestor| {
+            matches!(
+                ancestor.kind(),
+                CssSyntaxKind::SCSS_AT_ROOT_AT_RULE
+                    | CssSyntaxKind::SCSS_EACH_AT_RULE
+                    | CssSyntaxKind::SCSS_ELSE_CLAUSE
+                    | CssSyntaxKind::SCSS_FOR_AT_RULE
+                    | CssSyntaxKind::SCSS_FUNCTION_AT_RULE
+                    | CssSyntaxKind::SCSS_IF_AT_RULE
+                    | CssSyntaxKind::SCSS_INCLUDE_AT_RULE
+                    | CssSyntaxKind::SCSS_MIXIN_AT_RULE
+                    | CssSyntaxKind::SCSS_WHILE_AT_RULE
+            )
+        })
+        .map(|ancestor| ancestor.text_trimmed_range())
+}
+
 impl Rule for NoDuplicateSelectors {
     type Query = Semantic<AnyCssRoot>;
     type State = DuplicateSelectorList;
@@ -144,8 +170,9 @@ impl Rule for NoDuplicateSelectors {
                         continue;
                     }
 
+                    let rule_node = rule.node(&root);
                     let is_at_rule = matches!(
-                        rule.node(&root),
+                        &rule_node,
                         AnyRuleStart::CssMediaAtRule(_)
                             | AnyRuleStart::CssSupportsAtRule(_)
                             | AnyRuleStart::CssContainerAtRule(_)
@@ -169,6 +196,12 @@ impl Rule for NoDuplicateSelectors {
 
                     // For qualified rules with selectors, check for duplicates.
                     if !is_at_rule && !rule.selectors().is_empty() {
+                        if rule.selectors().iter().any(|selector| {
+                            let selector = selector.resolved().to_string();
+                            selector.contains('%') || selector.contains("#{")
+                        }) {
+                            continue;
+                        }
                         let mut normalized_selectors: Vec<String> = rule
                             .selectors()
                             .iter()
@@ -178,7 +211,11 @@ impl Rule for NoDuplicateSelectors {
 
                         let list_key = normalized_selectors.join(", ");
                         let context_hash = *context_hash_stack.last().unwrap();
-                        let context_key = (context_hash, list_key.clone());
+                        let context_key = (
+                            context_hash,
+                            scss_selector_context(&rule_node),
+                            list_key.clone(),
+                        );
                         let rule_range = rule.range(&root);
 
                         match seen.get(&context_key) {

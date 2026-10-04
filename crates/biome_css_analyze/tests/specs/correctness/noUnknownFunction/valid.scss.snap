@@ -1,0 +1,18 @@
+---
+source: crates/biome_css_analyze/tests/spec_tests.rs
+expression: valid.scss
+---
+# Input
+```css
+/* should not generate diagnostics */
+@function spacing_scale($multiplier) {
+  @return $multiplier * 4px;
+}
+
+.element {
+  color: lighten(black, 10%);
+  margin: spacing-scale(2);
+  padding: nth(1px 2px, 2);
+}
+
+```

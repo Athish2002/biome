@@ -20,6 +20,11 @@ declare_lint_rule! {
     ///
     /// This rule ignores vendor-prefixed pseudo-element selectors.
     ///
+    /// ## Sass limitations
+    ///
+    /// Pseudo-element names containing Sass interpolation are ignored because the emitted name
+    /// cannot be determined statically.
+    ///
     /// ## Examples
     ///
     /// ### Invalid

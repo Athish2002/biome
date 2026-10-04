@@ -50,6 +50,11 @@ declare_lint_rule! {
     ///
     /// This rule allows custom elements.
     ///
+    /// ## Sass limitations
+    ///
+    /// Type selector names containing Sass interpolation are ignored because the emitted name cannot
+    /// be determined statically.
+    ///
     /// ## Examples
     ///
     /// ### Invalid
