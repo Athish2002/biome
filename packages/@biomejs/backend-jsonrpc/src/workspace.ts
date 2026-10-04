@@ -2921,6 +2921,11 @@ export interface Nursery {
 	 */
 	noVueVOnNumberValues?: NoVueVOnNumberValuesConfiguration;
 	/**
+	 * Disallow the use of Vue's v-text directive.
+	 * See https://biomejs.dev/linter/rules/no-vue-v-text
+	 */
+	noVueVText?: NoVueVTextConfiguration;
+	/**
 	 * Disallow the bitwise XOR operator where exponentiation was likely intended.
 	 * See https://biomejs.dev/linter/rules/no-xor-as-exponentiation
 	 */
@@ -5322,6 +5327,9 @@ export type NoVueUndeclaredDirectivesConfiguration =
 export type NoVueVOnNumberValuesConfiguration =
 	| RulePlainConfiguration
 	| RuleWithNoVueVOnNumberValuesOptions;
+export type NoVueVTextConfiguration =
+	| RulePlainConfiguration
+	| RuleWithNoVueVTextOptions;
 export type NoXorAsExponentiationConfiguration =
 	| RulePlainConfiguration
 	| RuleWithNoXorAsExponentiationOptions;
@@ -7691,6 +7699,10 @@ export interface RuleWithNoVueVOnNumberValuesOptions {
 	level: RulePlainConfiguration;
 	options?: NoVueVOnNumberValuesOptions;
 }
+export interface RuleWithNoVueVTextOptions {
+	level: RulePlainConfiguration;
+	options?: NoVueVTextOptions;
+}
 export interface RuleWithNoXorAsExponentiationOptions {
 	/**
 	 * Controls the applicability of the rule's fix. `none` suppresses the fix, while `safe` and `unsafe` reclassify its applicability. This setting does not change the fix itself.
@@ -9924,6 +9936,7 @@ export interface NoVueUndeclaredDirectivesOptions {
 	globals?: string[];
 }
 export type NoVueVOnNumberValuesOptions = {};
+export type NoVueVTextOptions = {};
 export type NoXorAsExponentiationOptions = {};
 export type NoZeroFractionsOptions = {};
 export type UseArraySomeOptions = {};
@@ -11423,6 +11436,7 @@ export type Category =
 	| "lint/nursery/noVueRefAsOperand"
 	| "lint/nursery/noVueUndeclaredDirectives"
 	| "lint/nursery/noVueVOnNumberValues"
+	| "lint/nursery/noVueVText"
 	| "lint/nursery/noXorAsExponentiation"
 	| "lint/nursery/noZeroFractions"
 	| "lint/nursery/useArraySome"
