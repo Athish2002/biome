@@ -1,11 +1,33 @@
+use crate::FormatEmbedded;
 use crate::prelude::*;
-use biome_formatter::{FormatRuleWithOptions, format_args, write};
+use biome_formatter::{FormatRuleWithOptions, VecBuffer, format_args, write};
 use biome_html_syntax::{HtmlString, HtmlStringFields};
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FormatHtmlString {
     compact: bool,
 }
 impl FormatNodeRule<HtmlString> for FormatHtmlString {
+    fn fmt_node(&self, node: &HtmlString, f: &mut HtmlFormatter) -> FormatResult<()> {
+        // The value is code in another language, such as the expression of a
+        // Vue directive. The formatted code replaces the whole value, quotes
+        // included, and the value keeps its own formatting when the code can't
+        // be formatted.
+        if !self.compact
+            && f.context().should_delegate_fmt_embedded_nodes()
+            && let Ok(range) = node.inner_string_range()
+            && f.context().is_embedded_node_range(range)
+        {
+            let mut buffer = VecBuffer::new(f.state_mut());
+            write!(buffer, [format_with(|f| self.fmt_fields(node, f))])?;
+            return FormatEmbedded {
+                range,
+                content: Interned::new(buffer.into_vec()),
+            }
+            .fmt(f);
+        }
+        self.fmt_fields(node, f)
+    }
+
     fn fmt_fields(&self, node: &HtmlString, f: &mut HtmlFormatter) -> FormatResult<()> {
         let HtmlStringFields { value_token } = node.as_fields();
 
