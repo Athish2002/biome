@@ -74,12 +74,24 @@ Imported, aliased, overloaded, method, optional, async, and generator guards do
 not add facts. Neither do guards with spread arguments, default/rest/destructured
 parameters, `this` predicates, or compound and named predicate targets.
 
+Standalone calls to explicit local assertion functions refine subsequent reads
+on normal completion. A bare `asserts condition` applies the existing condition
+analysis to its argument; `asserts value is T` positively filters an identifier
+argument by the supported primitive or literal target. Asserting `boolean` does
+not imply truthiness. The call and all its arguments retain their incoming types.
+Unchecked predicate calls do not add continuation facts.
+
+Assertion effects are limited to non-optional calls that form an entire expression
+statement, optionally parenthesized. Nested calls, assignments, logical/conditional
+expressions, return operands, and other wrappers do not add assertion effects.
+Signature and subject restrictions are otherwise the same as for predicate guards.
+
 Flow inference is conservative for writes, captured bindings, variables declared
 with `var`, exception handlers, switch, for-in/of, destructuring, and dynamic scope.
-Assertion functions and property-path refinements are not modeled. Unsupported
-flow preserves the raw lookup; a cycle or exhausted flow evaluation returns an
-unknown override. A raw classifier must not ignore such an override and report a
-conclusive raw result.
+Property-path refinements and never-returning call effects are not modeled.
+Unsupported flow preserves the raw lookup; a cycle or exhausted flow evaluation
+returns an unknown override. A raw classifier must not ignore such an override
+and report a conclusive raw result.
 
 The tracked flow graph is keyed by module and execution-root range. It depends
 on the current module syntax snapshot, not semantic-model equality alone. This
