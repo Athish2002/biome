@@ -27,9 +27,9 @@ declare_lint_rule! {
     /// - custom variables e.g. `--custom-property`
     /// - vendor-prefixed properties (e.g., `-moz-align-self,` `-webkit-align-self`)
     ///
-    /// ## Sass limitations
+    /// ## SCSS limitations
     ///
-    /// Property names containing Sass interpolation are ignored because the emitted name cannot be
+    /// Property names containing SCSS interpolation are ignored because the emitted name cannot be
     /// determined statically.
     ///
     /// ## Examples

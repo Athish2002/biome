@@ -22,9 +22,9 @@ declare_lint_rule! {
     ///
     /// And all named grid areas that spans multiple grid cells must form a single filled-in rectangle.
     ///
-    /// ## Sass limitations
+    /// ## SCSS limitations
     ///
-    /// A `grid-template-areas` value that requires Sass evaluation is ignored. This includes values
+    /// A `grid-template-areas` value that requires SCSS evaluation is ignored. This includes values
     /// containing variables, interpolation, functions, or arithmetic expressions.
     ///
     /// ## Examples

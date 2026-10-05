@@ -3,17 +3,39 @@ use biome_analyze::{
 };
 use biome_console::markup;
 use biome_css_syntax::{
-    AnyCssAtRule, AnyCssRootItem, AnyCssRule, AnyScssImportItem, CssRootItemList,
+    AnyCssAtRule, AnyCssRootItem, AnyCssRule, AnyScssImportItem, CssLanguage, CssRootItemList,
+    ScssAtRootAtRule, ScssContentAtRule, ScssDebugAtRule, ScssEachAtRule, ScssErrorAtRule,
+    ScssExtendAtRule, ScssForAtRule, ScssForwardAtRule, ScssFunctionAtRule, ScssIfAtRule,
+    ScssImportAtRule, ScssIncludeAtRule, ScssMixinAtRule, ScssReturnAtRule, ScssUseAtRule,
+    ScssWarnAtRule, ScssWhileAtRule,
 };
 use biome_diagnostics::Severity;
-use biome_rowan::{AstNode, TextRange};
+use biome_rowan::{AstNode, SyntaxKindSet, TextRange};
 use biome_rule_options::no_invalid_position_at_import_rule::NoInvalidPositionAtImportRuleOptions;
+
+const SCSS_AT_RULE_KINDS: SyntaxKindSet<CssLanguage> = ScssAtRootAtRule::KIND_SET
+    .union(ScssContentAtRule::KIND_SET)
+    .union(ScssDebugAtRule::KIND_SET)
+    .union(ScssEachAtRule::KIND_SET)
+    .union(ScssErrorAtRule::KIND_SET)
+    .union(ScssExtendAtRule::KIND_SET)
+    .union(ScssForAtRule::KIND_SET)
+    .union(ScssForwardAtRule::KIND_SET)
+    .union(ScssFunctionAtRule::KIND_SET)
+    .union(ScssIfAtRule::KIND_SET)
+    .union(ScssImportAtRule::KIND_SET)
+    .union(ScssIncludeAtRule::KIND_SET)
+    .union(ScssMixinAtRule::KIND_SET)
+    .union(ScssReturnAtRule::KIND_SET)
+    .union(ScssUseAtRule::KIND_SET)
+    .union(ScssWarnAtRule::KIND_SET)
+    .union(ScssWhileAtRule::KIND_SET);
 
 declare_lint_rule! {
     /// Disallow the use of `@import` at-rules in invalid positions.
     ///
     /// Any `@import` rules must precede all other valid at-rules and style rules in a stylesheet (ignoring `@charset` and `@layer`), or else the `@import` rule is invalid.
-    /// Sass load imports are ignored because they don't emit CSS `@import` rules.
+    /// SCSS load imports are ignored because they don't emit CSS `@import` rules.
     ///
     /// ## Examples
     ///
@@ -107,24 +129,5 @@ impl Rule for NoInvalidPositionAtImportRule {
 }
 
 fn is_scss_at_rule(rule: &AnyCssAtRule) -> bool {
-    matches!(
-        rule,
-        AnyCssAtRule::ScssAtRootAtRule(_)
-            | AnyCssAtRule::ScssContentAtRule(_)
-            | AnyCssAtRule::ScssDebugAtRule(_)
-            | AnyCssAtRule::ScssEachAtRule(_)
-            | AnyCssAtRule::ScssErrorAtRule(_)
-            | AnyCssAtRule::ScssExtendAtRule(_)
-            | AnyCssAtRule::ScssForAtRule(_)
-            | AnyCssAtRule::ScssForwardAtRule(_)
-            | AnyCssAtRule::ScssFunctionAtRule(_)
-            | AnyCssAtRule::ScssIfAtRule(_)
-            | AnyCssAtRule::ScssImportAtRule(_)
-            | AnyCssAtRule::ScssIncludeAtRule(_)
-            | AnyCssAtRule::ScssMixinAtRule(_)
-            | AnyCssAtRule::ScssReturnAtRule(_)
-            | AnyCssAtRule::ScssUseAtRule(_)
-            | AnyCssAtRule::ScssWarnAtRule(_)
-            | AnyCssAtRule::ScssWhileAtRule(_)
-    )
+    SCSS_AT_RULE_KINDS.matches(rule.syntax().kind())
 }

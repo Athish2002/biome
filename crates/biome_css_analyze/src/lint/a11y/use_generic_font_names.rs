@@ -31,9 +31,9 @@ declare_lint_rule! {
     /// - The last value being a CSS variable.
     /// - `font-family` property in an `@font-face` rule.
     ///
-    /// ## Sass limitations
+    /// ## SCSS limitations
     ///
-    /// Font values that require Sass evaluation, including variables, interpolation, and
+    /// Font values that require SCSS evaluation, including variables, interpolation, and
     /// user-defined function results, are ignored because the emitted font family is unknown.
     ///
     /// ## Examples

@@ -24,10 +24,10 @@ declare_lint_rule! {
     /// Nested selectors are checked as written instead of being resolved against their parent selector.
     /// For example, in `.foo { &.bar {} }`, the nested selector `&.bar` contributes one class selector.
     ///
-    /// ## Sass limitations
+    /// ## SCSS limitations
     ///
     /// The rule counts classes in the authored selector. It does not expand mixins or `@extend`, and
-    /// it ignores selectors containing Sass interpolation because the emitted selector cannot be
+    /// it ignores selectors containing SCSS interpolation because the emitted selector cannot be
     /// determined statically.
     ///
     /// ## Examples

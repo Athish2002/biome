@@ -23,7 +23,7 @@ declare_lint_rule! {
     /// This rule checks if the file urls of the @import rules are duplicates.
     ///
     /// This rule also checks the imported media queries and alerts of duplicates.
-    /// Sass load imports are ignored because they don't emit CSS `@import` rules.
+    /// SCSS load imports are ignored because they don't emit CSS `@import` rules.
     ///
     /// ## Examples
     ///
