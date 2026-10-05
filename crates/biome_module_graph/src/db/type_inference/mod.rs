@@ -12,6 +12,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 mod expressions;
 mod flow;
 mod flow_expressions;
+mod flow_guards;
 mod globals;
 mod imports;
 mod lookup;

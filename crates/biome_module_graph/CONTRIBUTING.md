@@ -64,11 +64,22 @@ An object shape such as `{}` can also describe numbers and strings. Removing
 Similarly, a `void` return annotation does not guarantee runtime `undefined`;
 filtering a `void` result preserves uncertainty instead of asserting nullishness.
 
+Explicit local predicate calls can also refine reads. A supported guard is a
+single synchronous, non-generic function declaration with a `parameter is T`
+annotation, where `T` is a primitive keyword or literal. The selected argument
+must identify the binding being narrowed. Signature selection reads raw metadata
+without resolving parameter types, sibling arguments, or function bodies.
+
+Imported, aliased, overloaded, method, optional, async, and generator guards do
+not add facts. Neither do guards with spread arguments, default/rest/destructured
+parameters, `this` predicates, or compound and named predicate targets.
+
 Flow inference is conservative for writes, captured bindings, variables declared
-with `var`, exception handlers, switch, for-in/of, destructuring, and dynamic scope. Predicate/assertion functions
-and property-path refinements are not modeled. Unsupported flow preserves the raw
-lookup; a cycle or exhausted flow evaluation returns an unknown override. A raw
-classifier must not ignore such an override and report a conclusive raw result.
+with `var`, exception handlers, switch, for-in/of, destructuring, and dynamic scope.
+Assertion functions and property-path refinements are not modeled. Unsupported
+flow preserves the raw lookup; a cycle or exhausted flow evaluation returns an
+unknown override. A raw classifier must not ignore such an override and report a
+conclusive raw result.
 
 The tracked flow graph is keyed by module and execution-root range. It depends
 on the current module syntax snapshot, not semantic-model equality alone. This
