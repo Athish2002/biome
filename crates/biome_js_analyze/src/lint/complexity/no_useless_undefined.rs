@@ -1,17 +1,26 @@
 use biome_analyze::{
-    Ast, FixKind, Rule, RuleDiagnostic, RuleSource, context::RuleContext, declare_lint_rule,
+    FixKind, Rule, RuleDiagnostic, RuleSource, context::RuleContext, declare_lint_rule,
 };
 use biome_console::markup;
 use biome_diagnostics::Severity;
+use biome_js_semantic::{BindingExtensions, SemanticModel};
 use biome_js_syntax::{
-    AnyJsExpression, AnyTsReturnType, AnyTsType, JsArrayBindingPatternElement, JsFormalParameter,
-    JsObjectBindingPatternShorthandProperty, JsReturnStatement, JsVariableStatement,
-    JsYieldArgument,
+    AnyJsExpression, AnyTsReturnType, AnyTsType, JsArrayBindingPatternElement,
+    JsArrowFunctionExpression, JsConstructorClassMember, JsFormalParameter,
+    JsFunctionDeclaration, JsFunctionExportDefaultDeclaration, JsFunctionExpression,
+    JsGetterClassMember, JsGetterObjectMember, JsMethodClassMember, JsMethodObjectMember,
+    JsObjectBindingPatternShorthandProperty, JsReferenceIdentifier, JsReturnStatement,
+    JsSetterClassMember, JsSetterObjectMember, JsVariableStatement, JsYieldArgument,
 };
-use biome_rowan::{AstNode, BatchMutationExt, TextRange, TokenText, declare_node_union};
+use biome_rowan::{
+    AstNode, BatchMutationExt, TextRange, TokenText, WalkEvent, declare_node_union,
+};
 use biome_rule_options::no_useless_undefined::NoUselessUndefinedOptions;
 
-use crate::{JsRuleAction, services::control_flow::AnyJsControlFlowRoot};
+use crate::{
+    JsRuleAction,
+    services::{control_flow::AnyJsControlFlowRoot, semantic::Semantic},
+};
 
 declare_lint_rule! {
     /// Disallow the use of useless `undefined`.
@@ -97,13 +106,40 @@ declare_node_union! {
         | JsFormalParameter
 }
 
+declare_node_union! {
+    pub AnyEnclosingFunction =
+        JsArrowFunctionExpression
+        | JsConstructorClassMember
+        | JsFunctionDeclaration
+        | JsFunctionExportDefaultDeclaration
+        | JsFunctionExpression
+        | JsMethodClassMember
+        | JsMethodObjectMember
+        | JsSetterClassMember
+        | JsSetterObjectMember
+}
+
+declare_node_union! {
+    pub AnyArgumentsBoundary =
+        JsConstructorClassMember
+        | JsFunctionDeclaration
+        | JsFunctionExportDefaultDeclaration
+        | JsFunctionExpression
+        | JsGetterClassMember
+        | JsGetterObjectMember
+        | JsMethodClassMember
+        | JsMethodObjectMember
+        | JsSetterClassMember
+        | JsSetterObjectMember
+}
+
 pub struct RuleState {
     binding_text: Option<TokenText>,
     diagnostic_range: TextRange,
 }
 
 impl Rule for NoUselessUndefined {
-    type Query = Ast<AnyUndefinedNode>;
+    type Query = Semantic<AnyUndefinedNode>;
     type State = RuleState;
     type Signals = Box<[Self::State]>;
     type Options = NoUselessUndefinedOptions;
@@ -203,7 +239,9 @@ impl Rule for NoUselessUndefined {
             AnyUndefinedNode::JsFormalParameter(js_formal_parameter) => {
                 if let Some(init) = js_formal_parameter.initializer() {
                     let expr = init.expression().ok();
-                    if let Some(range) = find_undefined_range(expr.as_ref()) {
+                    if let Some(range) = find_undefined_range(expr.as_ref())
+                        && !enclosing_function_uses_arguments(ctx.model(), js_formal_parameter)
+                    {
                         signals.push(RuleState {
                             binding_text: None,
                             diagnostic_range: range,
@@ -268,6 +306,9 @@ impl Rule for NoUselessUndefined {
                 mutation.remove_node(init)
             }
             AnyUndefinedNode::JsFormalParameter(js_formal_parameter) => {
+                if enclosing_function_uses_arguments(ctx.model(), js_formal_parameter) {
+                    return None;
+                }
                 let init = js_formal_parameter.initializer()?;
                 mutation.remove_node(init);
             }
@@ -331,4 +372,43 @@ fn is_useless_return_undefined(statement: &JsReturnStatement) -> bool {
                 )
             })
     })
+}
+
+fn find_enclosing_function(parameter: &JsFormalParameter) -> Option<AnyEnclosingFunction> {
+    parameter
+        .syntax()
+        .ancestors()
+        .skip(1)
+        .find_map(AnyEnclosingFunction::cast)
+}
+
+fn enclosing_function_uses_arguments(
+    model: &SemanticModel,
+    parameter: &JsFormalParameter,
+) -> bool {
+    let Some(enclosing_fn) = find_enclosing_function(parameter) else {
+        return false;
+    };
+    let root = enclosing_fn.syntax();
+    let mut iter = root.preorder();
+
+    while let Some(event) = iter.next() {
+        let WalkEvent::Enter(node) = event else {
+            continue;
+        };
+
+        if node != *root && AnyArgumentsBoundary::can_cast(node.kind()) {
+            iter.skip_subtree();
+            continue;
+        }
+
+        if let Some(reference) = JsReferenceIdentifier::cast_ref(&node)
+            && reference.name().is_ok_and(|name| name == "arguments")
+            && reference.binding(model).is_none()
+        {
+            return true;
+        }
+    }
+
+    false
 }
